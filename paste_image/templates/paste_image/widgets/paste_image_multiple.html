@@ -1,0 +1,113 @@
+{% load static %}
+<style media="screen">{{ library_css }}</style>
+<script type="text/javascript" >{{ library_jquery }}</script>
+<link rel="stylesheet" type="text/css" href="{% static 'paste_image/paste_image.css' %}">
+<script type="text/javascript" src="{% static 'paste_image/jquery.js' %}"></script>
+
+
+<label for="id_{{ widget.name }}">Change or Paste</label>
+<input type="file" id="id_{{ widget.name }}"
+    class="pasted_image_file" accept="image/*"
+    name="{{ widget.name }}" value="{% if widget.value %}{{ widget.value }}{% endif %}"
+    multiple>
+
+<div id="pasted_images_{{ widget.name }}">
+</div>
+
+
+<script type="text/javascript">
+$( document ).ready(function() {
+    var pasted_image_div = document.getElementById("pasted_images_{{ widget.name }}");
+    var pasted_image_file = document.getElementById("id_{{ widget.name }}");
+
+    function reset_input_names() {
+        var inputs = $('[name^=pasted_image_{{ widget.name }}]');
+        for (var i in inputs) {
+            inputs[i].name = "pasted_image_{{ widget.name }}" + i.toString();
+        }
+    }
+
+    document.onpaste = function (event) {
+        // use event.originalEvent.clipboard for newer chrome versions
+        var items = (event.clipboardData || event.originalEvent.clipboardData).items;
+
+        // find pasted image among pasted items
+        var blob = null;
+        for (var i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf("image") === 0) {
+                blob = items[i].getAsFile();
+            }
+        }
+
+        // load image if there is a pasted image
+        if (blob !== null) {
+            var reader = new FileReader();
+            reader.onload = function (event) {
+                var div = document.createElement("div");
+                div.style = "position: relative;";
+
+                var img = document.createElement("img");
+                img.className = "pasted_image_style";
+                img.src = event.target.result;
+                div.appendChild(img);
+
+                var remove = document.createElement("div");
+                remove.innerHTML = "X";
+                remove.className = "remove_pasted_image"
+                remove.onclick = function (event) {
+                    pasted_image_div.removeChild(div);
+
+                    // Force the input names to be pasted_image0, pasted_image1, ...
+                    reset_input_names();
+                };
+                div.appendChild(remove);
+
+                var inp = document.createElement("input");
+                inp.type = "hidden";
+                inp.name = "pasted_image_{{ widget.name }}";
+                inp.value = event.target.result;
+                div.appendChild(inp);
+
+                pasted_image_div.appendChild(div);
+
+                // Force the input names to be pasted_image0, pasted_image1, ...
+                reset_input_names();
+            };
+            reader.readAsDataURL(blob);
+        }
+    };
+
+    pasted_image_file.onchange = function (event) {
+        var old_files = $('.pasted_image_{{ widget.name }}_file').toArray();
+        var i;
+        for (i = 0; i < old_files.length; i++) {
+            try {
+                pasted_image_div.removeChild(old_files[i])
+            } catch (exc) {
+            }
+        }
+
+        // FileReader support
+        if (FileReader && pasted_image_file.files) {
+            for (i = 0; i < pasted_image_file.files.length; i++) {
+                var file = pasted_image_file.files[i];
+                var reader = new FileReader();
+                reader.onload = function (event) {
+                    var img = document.createElement("img");
+                    img.className = "pasted_image_style pasted_image_{{ widget.name }}_file";
+                    img.src = event.target.result;
+                    pasted_image_div.append(img)
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    };
+
+// document.ondrop = function drop(ev) {
+//    ev.preventDefault();
+//    var data = ev.dataTransfer.getData("text");
+//    ev.target.appendChild(document.getElementById(data));
+// ;
+});
+
+</script>

@@ -1,0 +1,71 @@
+{% load static %}
+<style media="screen">{{ library_css }}</style>
+<script type="text/javascript" >{{ library_jquery }}</script>
+<link rel="stylesheet" type="text/css" href="{% static 'paste_image/paste_image.css' %}">
+<script type="text/javascript" src="{% static 'paste_image/jquery.js' %}"></script>
+
+
+<label for="id_{{ widget.name }}">Change or Paste</label>
+<input type="file" id="id_{{ widget.name }}"
+    class="pasted_image_file" accept="image/*"
+    name="{{ widget.name }}" value="{% if widget.value %}{{ widget.value }}{% endif %}">
+
+<img id="pasted_image_img_{{ widget.name }}"
+     class="pasted_image_style"
+     src="{% if widget.value %}{{ widget.value }}{% endif %}">
+
+<input type="hidden" id="pasted_image_{{ widget.name }}" name="{{ widget.name }}">
+
+
+<script type="text/javascript">
+$( document ).ready(function() {
+    var pasted_image_file = document.getElementById("id_{{ widget.name }}");
+    var pasted_image_image = document.getElementById("pasted_image_img_{{ widget.name }}");
+    var pasted_image_hidden = document.getElementById("pasted_image_{{ widget.name }}");
+
+
+    document.onpaste = function (event) {
+        // use event.originalEvent.clipboard for newer chrome versions
+        var items = (event.clipboardData || event.originalEvent.clipboardData).items;
+
+        // console.log(JSON.stringify(items)); // will give you the mime types
+
+        // find pasted image among pasted items
+        var blob = null;
+        for (var i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf("image") === 0) {
+                blob = items[i].getAsFile();
+            }
+        }
+
+        // load image if there is a pasted image
+        if (blob !== null) {
+            var reader = new FileReader();
+            reader.onload = function (event) {
+                pasted_image_image.src = event.target.result;
+                pasted_image_hidden.value = event.target.result;
+                pasted_image_file.value = "";
+            };
+            reader.readAsDataURL(blob);
+        }
+    };
+
+    pasted_image_file.onchange = function (event) {
+        if (pasted_image_file.files.length) {
+            // FileReader support
+            if (FileReader) {
+                var reader = new FileReader();
+                reader.onload = function (event) {
+                    pasted_image_image.src = event.target.result;
+                    pasted_image_hidden.value = "";
+                };
+                reader.readAsDataURL(pasted_image_file.files[0]);
+            }
+        } else {
+            pasted_image_image.src = "";
+            pasted_image_hidden.value = "";
+        }
+    }
+});
+
+</script>

@@ -1,0 +1,31 @@
+#pasted_images {}
+
+.pasted_image_style{
+    display: block;
+    max-width:400px;
+    max-height:400px;
+    border: solid 1px #aaa;
+    border-radius: 5px;
+    transition: 300ms all;
+    image-orientation: from-image;
+    margin: 0.5em 0 0.5em 0;
+}
+
+.remove_pasted_image{
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 5px;
+    background-color: red;
+    color: white;
+    cursor: pointer;
+    z-index: 999;
+    padding: 0.5em 1.2em 0.5em 0.5em;
+    margin: 0em;
+    width: 0.1em;
+}
+
+.pasted_image_file{
+    /*color: transparent;*/
+    /*width: 6.5em;*/
+}
