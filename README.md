@@ -36,7 +36,59 @@ Override `static/paste_image/paste_image.css` with the classes
   * pasted_image_file
 
 I've made this to work by default by loading the static file from the library folder. 
-This app does not need to be put into INSTALLED_APPS. 
+This app does not need to be put into INSTALLED_APPS.
+ 
+### Multiple Images
+**Not fully test. WIP**
+
+For multiple images pass the `multiple` argument. This will require some work.
+
+Note the ForeignKey relationship to another model
+
+```python
+# models.py
+class MyModel(models.Model):
+    name = model.CharField(max_length=255)
+    
+class MyImages(models.Model):
+    mymodel = models.ForeignKey(MyModel, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to="myimages/")
+
+# forms.py
+import paste_image
+
+class MyForm(forms.ModelForm):
+    images = paste_image.PasteImageFormField(multiple=True)
+    
+    class Meta:
+        model = MyModel
+        exclude = []
+    
+    def save(self, *args, **kwargs):
+        # Save and create the main object
+        obj = super(MyForm, self).save(*args, **kwargs)
+
+        # This should be a list of TemporaryFileUpload images
+        images = self.cleaned_data["images"]
+        for file in images:
+            MyImages.objects.create(mymodel=obj, image=file)
+        return obj
+```
+
+A widget can also use the multiple keywork, but you have to handle the list of returned images.
+
+```python
+# forms.py
+import paste_image
+ 
+class MyForm(forms.ModelForm):
+    class Meta:
+        model = MyModel
+        exclude = []
+        widgets = {
+            'image': paste_image.PasteImageWidget(attrs={"multiple":True})
+        }
+```
 
 ## How it works
 Custom django widget that uses the template `templates/paste_image/widgets/paste_image.html`
