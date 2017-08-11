@@ -82,12 +82,11 @@ A widget can also use the multiple keywork, but you have to handle the list of r
 import paste_image
  
 class MyForm(forms.ModelForm):
+    image = forms.ImageField(widget=paste_image.PasteImageWidget(attrs={"multiple":True}))
+    
     class Meta:
         model = MyModel
         exclude = []
-        widgets = {
-            'image': paste_image.PasteImageWidget(attrs={"multiple":True})
-        }
 ```
 
 ## How it works
